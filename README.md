@@ -1,3 +1,12 @@
+# Changes
+
+在原来版本的基础上做了些改动
+
+1. 去除bower依赖，直接使用npm
+2. 练习写了koa版本的server.js
+  * koa.js
+  * router.js
+
 # New Eden Faces (React)
 
 [![Donate](https://img.shields.io/badge/paypal-donate-blue.svg)](https://paypal.me/sahat)
