@@ -21,6 +21,8 @@ var routes = require('./app/routes');
 
 var koa = require('koa');
 var app = koa();
+
+// https://github.com/koajs/ejs
 render(app, {
   root: path.join(__dirname, 'views'),
   layout: false,
@@ -34,11 +36,12 @@ mongoose.connection.on('error', function() {
   console.info('Error: Could not connect to MongoDB. Did you forget to run `mongod`?'.red);
 });
 
+// https://github.com/koajs/compress
 app.use(compress());
 
 function ignoreAssets(mw) {
-  return function *(next){
-    if (/(\.js|\.css|\.ico|\.woff2)$/.test(this.path)) {
+  return function *(next) {
+    if (/(\.js|\.css|\.ico|\.jpg|\.woff2)$/.test(this.path)) {
       yield next;
     } else {
       // must .call() to explicitly set the receiver
@@ -47,11 +50,17 @@ function ignoreAssets(mw) {
     }
   }
 }
-
-app.use(ignoreAssets(logger('dev')));
-app.use(bodyParser());
-// app.use(bodyParser.urlencoded({ extended: false }));
+// https://github.com/koajs/logger
+app.use(ignoreAssets(logger()));
+// https://github.com/koajs/bodyparser
+app.use(bodyParser({
+  onerror: function (err, ctx) {
+    ctx.throw('body parse error', 422);
+  }
+}));
+// https://github.com/koajs/favicon
 app.use(favicon(path.join(__dirname, 'public', 'favicon.png')));
+// https://github.com/koajs/static
 app.use(serve(path.join(__dirname, 'public')));
 
 var router = require('./router');

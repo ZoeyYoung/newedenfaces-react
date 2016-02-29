@@ -7,10 +7,11 @@ var xml2js = require('xml2js');
 var request = require('request');
 var async = require('async');
 var Character = require('./models/character');
-var parse = require('co-body');
-var Router = require("koa-router");
-var router = new Router();
-var co = require('co');
+
+// https://github.com/alexmingoia/koa-router
+var router = require("koa-router")({
+  prefix: '/api'
+});
 
 router.use(function *(next) {
   this.type = "json";
@@ -21,9 +22,10 @@ router.use(function *(next) {
  * GET /api/characters
  * Returns 2 random characters of the same gender that have not been voted yet.
  */
-router.get('/api/characters', function* () {
+router.get('/characters', function* () {
   var choices = ['Female', 'Male'];
   var randomGender = _.sample(choices);
+
   yield new Promise((resolve, reject) => {
     Character.find({ random: { $near: [Math.random(), 0] } })
       .where('voted', false)
@@ -66,20 +68,17 @@ router.get('/api/characters', function* () {
  * PUT /api/characters
  * Update winning and losing count for both characters.
  */
-router.put('/api/characters', function* () {
+router.put('/characters', function* () {
   var ctx = this;
   var winner = this.request.body.winner;
   var loser = this.request.body.loser;
-  console.log(winner, loser)
   if (!winner || !loser) {
-    // return res.status(400).send({ message: 'Voting requires two characters.' });
     this.status = 400;
     this.body = { message: 'Voting requires two characters.' };
     return;
   }
 
   if (winner === loser) {
-    // return res.status(400).send({ message: 'Cannot vote for and against the same character.' });
     this.status = 400;
     this.body = { message: 'Cannot vote for and against the same character.' };
     return;
@@ -104,14 +103,12 @@ router.put('/api/characters', function* () {
       var loser = results[1];
 
       if (!winner || !loser) {
-        // return res.status(404).send({ message: 'One of the characters no longer exists.' });
         ctx.status = 404;
         ctx.body = { message: 'One of the characters no longer exists.' };
         resolve();
       }
 
       if (winner.voted || loser.voted) {
-        // return res.status(200).end();
         ctx.status = 200;
         resolve();
       }
@@ -135,7 +132,6 @@ router.put('/api/characters', function* () {
         }
       ], function(err) {
         if (err) reject(err);
-        // res.status(200).end();
         ctx.status = 200;
         resolve();
       });
@@ -147,7 +143,7 @@ router.put('/api/characters', function* () {
  * GET /api/characters/shame
  * Returns 100 lowest ranked characters.
  */
-router.get('/api/characters/shame', function* () {
+router.get('/characters/shame', function* () {
   yield new Promise((resolve, reject) => {
     Character
       .find()
@@ -165,7 +161,7 @@ router.get('/api/characters/shame', function* () {
  * GET /api/characters/top
  * Return 100 highest ranked characters. Filter by gender, race and bloodline.
  */
-router.get('/api/characters/top', function* () {
+router.get('/characters/top', function* () {
   var params = this.request.query;
   var conditions = {};
   _.each(params, function(value, key) {
@@ -194,7 +190,7 @@ router.get('/api/characters/top', function* () {
  * GET /api/characters/count [OK]
  * Returns the total number of characters.
  */
-router.get('/api/characters/count', function* () {
+router.get('/characters/count', function* () {
   yield new Promise((resolve, reject) => {
     Character.count({}, (err, count) => {
       if (err) reject(err);
@@ -208,7 +204,7 @@ router.get('/api/characters/count', function* () {
  * GET /api/characters/search
  * Looks up a character by name. (case-insensitive)
  */
-router.get('/api/characters/search', function* () {
+router.get('/characters/search', function* () {
   var characterName = new RegExp(this.request.query.name, 'i');
 
   yield new Promise((resolve, reject) => {
@@ -231,15 +227,13 @@ router.get('/api/characters/search', function* () {
  * GET /api/characters/:id
  * Returns detailed character information.
  */
-router.get('/api/characters/:id', function* () {
+router.get('/characters/:id', function* () {
   var id = this.params.id;
-console.log(id);
   yield new Promise((resolve, reject) => {
     Character.findOne({ characterId: id }, (err, character) => {
       if (err) reject(err);
 
       if (!character) {
-        // return res.status(404).send({ message: 'Character not found.' });
         this.status = 404;
         this.body = { message: 'Character not found.' };
         resolve();
@@ -255,7 +249,7 @@ console.log(id);
  * POST /api/characters
  * Adds new character to the database.
  */
-router.post('/api/characters', function* () {
+router.post('/characters', function* () {
   var ctx = this;
   var gender = this.request.body.gender;
   var characterName = this.request.body.name;
@@ -277,7 +271,6 @@ router.post('/api/characters', function* () {
                 if (err) reject(err);
 
                 if (character) {
-                  // return res.status(409).send({ message: character.name + ' is already in the database.' });
                   ctx.status = 409;
                   ctx.body = { message: character.name + ' is already in the database.' };
                   return resolve();
@@ -335,7 +328,7 @@ router.post('/api/characters', function* () {
  * GET /api/stats [OK]
  * Returns characters statistics.
  */
-router.get('/api/stats', function* () {
+router.get('/stats', function* () {
   var ctx = this;
   yield new Promise((resolve, reject) => {
     async.parallel([
@@ -442,7 +435,7 @@ router.get('/api/stats', function* () {
  * POST /api/report
  * Reports a character. Character is removed after 4 reports.
  */
-router.post('/api/report', function* () {
+router.post('/report', function* () {
   var characterId = this.request.body.characterId;
   yield new Promise((resolve, reject) => {
     Character.findOne({ characterId: characterId }, (err, character) => {
