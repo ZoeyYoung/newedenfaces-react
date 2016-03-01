@@ -51,7 +51,8 @@ function ignoreAssets(mw) {
   }
 }
 // https://github.com/koajs/logger
-app.use(ignoreAssets(logger('dev')));
+// app.use(ignoreAssets(logger('dev')));
+app.use(logger('dev'));
 // https://github.com/koajs/bodyparser
 app.use(bodyParser({
   onerror: function (err, ctx) {
@@ -61,7 +62,9 @@ app.use(bodyParser({
 // https://github.com/koajs/favicon
 app.use(favicon(path.join(__dirname, 'public', 'favicon.png')));
 // https://github.com/koajs/static
-app.use(serve(path.join(__dirname, 'public')));
+app.use(serve(path.join(__dirname, 'public'), {
+  maxage: 365 * 24 * 60 * 60 * 1000,
+}));
 
 var router = require('./router');
 app.use(router.routes());
@@ -72,7 +75,7 @@ app.use(function *(next) {
   Router.match({
     routes: routes.default,
     location: this.url,
-  }, function(err, redirectLocation, renderProps) {
+  }, (err, redirectLocation, renderProps) => {
     if (err) {
       this.throw(error.message, 500);
     } else if (redirectLocation) {
