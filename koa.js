@@ -51,7 +51,7 @@ function ignoreAssets(mw) {
   }
 }
 // https://github.com/koajs/logger
-app.use(ignoreAssets(logger()));
+app.use(ignoreAssets(logger('dev')));
 // https://github.com/koajs/bodyparser
 app.use(bodyParser({
   onerror: function (err, ctx) {

@@ -6,11 +6,11 @@
     "type": "git",
     "url": "https://github.com/sahat/newedenfaces-react"
   },
-  "main": "server.js",
+  "main": "koa.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node koa.js",
     "watch": "nodemon koa.js",
-    "postinstall": "bower install && gulp build"
+    "postinstall": "gulp build"
   },
   "babel": {
     "presets": [
