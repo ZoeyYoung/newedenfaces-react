@@ -7,7 +7,7 @@ var bodyParser = require('koa-bodyparser');
 var compress = require('koa-compress')
 var favicon = require('koa-favicon');
 var logger = require('koa-logger');
-var serve = require('koa-static');
+var serve = require('koa-static-cache');
 var render = require('koa-ejs');
 var async = require('async');
 var colors = require('colors');
@@ -63,7 +63,7 @@ app.use(bodyParser({
 app.use(favicon(path.join(__dirname, 'public', 'favicon.png')));
 // https://github.com/koajs/static
 app.use(serve(path.join(__dirname, 'public'), {
-  maxage: 365 * 24 * 60 * 60 * 1000,
+  maxAge: 365 * 24 * 60 * 60 * 1000,
 }));
 
 var router = require('./router');
